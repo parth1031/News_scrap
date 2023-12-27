@@ -76,6 +76,6 @@ for category in categories:
   cnn_scraper(category)
 print(len(news_list))
 
-with open('bbcNews.json', 'w', encoding='utf-8') as file:
+with open('ccnNews.json', 'w', encoding='utf-8') as file:
   json.dump(news_list , file, ensure_ascii=False, indent=4)
 
