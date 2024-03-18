@@ -41,7 +41,6 @@ class CustomExtractor:
         return len(links) > 5
 
 
-
     def boost_req(self, node):
         para = "p"
         steps_away = 0
@@ -113,6 +112,8 @@ class CustomExtractor:
         i = 0
         parent_text_containers = []
         text_containers_with_text = []
+
+        pre_def_classes = ["SY2GX mb40","atricle_content",""]
 
 
         for node in worthy_text_containers:
