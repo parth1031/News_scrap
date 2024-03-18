@@ -9,6 +9,8 @@ from extractor import CustomExtractor
 from cleaner import cleaning_function
 
 url="https://www.gadgetsnow.com/gn-advertorial/enter-the-new-era-of-mobile-technology-as-samsung-is-all-set-to-introduce-the-revolutionary-galaxy-ai/articleshow/106867089.cms?upcache=2&_gl=1*1ncy8wg*_ga*MzI4MzUwNDA5LjE2OTI1NTY4MTQ.*_ga_FCN624MN68*MTcwNTkxOTU1Ny4xMS4xLjE3MDU5MTk4MTIuNjAuMC4w"
+url = input("Please Enter the url :")
+
 proxies = {
 "http": "http://scraperapi:8355bf750256f87924cb321115d06996@proxy-server.scraperapi.com:8001"
 }
