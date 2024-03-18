@@ -1,0 +1,1 @@
+google drive link for seeing the performance of news-please model is and it is tested on  various urls of different news website -https://docs.google.com/spreadsheets/d/1G0R-xoBwNqZ2RAy_EVRy1G3XTgfuVH_cETVZ5PZkCrY/edit?usp=sharing
