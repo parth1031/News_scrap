@@ -1,4 +1,7 @@
 import re
+from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 def is_valid_datetime(datetime_string):
     # Define a regex pattern for the specified datetime format
@@ -37,11 +40,11 @@ def cleaning_function(best_node):
     #No article tag taken
     tag_types = ['p', 'div', 'span']
     # Define undesired word patterns for each category
-    advertisement_pattern = r'\bads?\b|Advertisement|advertisements'
+    advertisement_pattern = r'\bads?\b|Advertisement|advertisements|view comments|I agree to theterms|I agree to the terms'
     technical_issues_pattern = r'sorry|try again|audio is unavailable|AI-generated|Content is loading'
-    subscription_pattern = r'subscribe|purchase'
-    feedback_pattern = r'feedback'
-    footer_pattern = r'read\s*more'
+    subscription_pattern = r'subscribe|purchase|subscription'
+    feedback_pattern = r'feedback|facebooktwiiterwhatsapp'
+    footer_pattern = r'read\s*more|read next|editors pick'
 
     # Add more patterns for other categories if needed
 
@@ -53,11 +56,27 @@ def cleaning_function(best_node):
 
 
 
+
     for node in best_node.find_all(tag_types[0]) + best_node.find_all(tag_types[2]):
+        parent_list = []
+        parent = node.parent
+        cnt = 0
+        while(cnt < 5):
+           parent_list.append(parent)
+           parent = parent.parent
+           cnt = cnt+1
+        
+        flag = 0
+        for node in parent_list:
+           if(node.name == "form"):
+              flag = 1
+              break
+        
+        if(flag == 1):
+           continue
+            
         try:
            if len(node.find_all()) == 0 or any(child.name in ['a', 'em', 'span'] for child in node.children):
-
-
                 text = node.get_text(strip=True)
                 text = process_text(text,undesired_words_pattern)
                 if len(text) >= 10:
@@ -68,11 +87,29 @@ def cleaning_function(best_node):
 
     fin = []
     if len(content) > 0:
-        for x in content:
-            if(x not in fin):
-              fin.append(x)
-        for x in fin:
-          print(x)
+    #     for x in content:
+    #         if(x not in fin):
+    #           fin.append(x)
+    #     for x in fin:
+    #       print(x)
+        tfidf_vectorizer = TfidfVectorizer()
+        tfidf_matrix = tfidf_vectorizer.fit_transform(content)
+        cosine_similarities = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+        # Identify duplicate or highly similar sentences using cosine similarity
+        duplicate_indices = set()
+        for i in range(len(content)):
+            for j in range(i+1, len(content)):
+                if cosine_similarities[i][j] > 0.9:  # Adjust threshold as needed
+                    duplicate_indices.add(j)
+
+        # Filter out duplicate sentences
+        unique_content = [content[i] for i in range(len(content)) if i not in duplicate_indices]
+
+        # Print unique content
+        for sentence in unique_content:
+            print(sentence)
+
 
     else:
       for node in best_node.find_all(tag_types[1]):
@@ -87,10 +124,27 @@ def cleaning_function(best_node):
 
       fin = []
       if len(content) > 0:
-        for x in content:
-            if(x not in fin):
-              fin.append(x)
-        for x in fin:
-          print(x)
+        # for x in content:
+        #     if(x not in fin):
+        #       fin.append(x)
+        # for x in fin:
+        #   print(x)
+        tfidf_vectorizer = TfidfVectorizer()
+        tfidf_matrix = tfidf_vectorizer.fit_transform(content)
+        cosine_similarities = cosine_similarity(tfidf_matrix, tfidf_matrix)
+
+        # Identify duplicate or highly similar sentences using cosine similarity
+        duplicate_indices = set()
+        for i in range(len(content)):
+            for j in range(i+1, len(content)):
+                if cosine_similarities[i][j] > 0.9:  # Adjust threshold as needed
+                    duplicate_indices.add(j)
+
+        # Filter out duplicate sentences
+        unique_content = [content[i] for i in range(len(content)) if i not in duplicate_indices]
+
+        # Print unique content
+        for sentence in unique_content:
+            print(sentence)
       else:
-        print("No data found on Website")
+        print(best_node.get_text(strip=True))

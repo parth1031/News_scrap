@@ -62,7 +62,10 @@ best_node = extractor.most_imp_node(soup)
 print("\n\n")
 # Now, you can access the best node and its gravity score
 if best_node:
-    print(f"Best Node: {best_node['class']}, Gravity Score: {best_node.get('score', 0)}")
+    # try:
+    #     print(f"Best Node: {best_node['class']}, Gravity Score: {best_node.get('score', 0)}")
+    # except:
+    #     pass
     # print(best_node.get_text(strip=True))
     cleaning_function(best_node)
     
