@@ -188,6 +188,41 @@ class HTMLParser:
         elements = self.tree.xpath(xpath_query)
     
         return elements
+    
+    def find_all_lxml(self, node=None, tag=None, recursive=True):
+        if node is not None:
+            if tag:
+                query = ".//{}//*".format(tag)
+            else:
+                query = ".//*"
+            if recursive:
+                elements = node.xpath(query)
+            else:
+                elements = node.findall(query)
+        else:
+            if tag:
+                query = ".//{}".format(tag)
+            else:
+                query = ".//*"
+            if recursive:
+                elements = self.tree.xpath(query)
+            else:
+                elements = self.tree.findall(query)
+        return elements
+
+    def iteratesib(self,node, preceding=False):
+        siblings = []
+        if preceding:
+            sibling = node.getprevious()
+            while sibling is not None:
+                siblings.append(sibling)
+                sibling = sibling.getprevious()
+        else:
+            sibling = node.getnext()
+            while sibling is not None:
+                siblings.append(sibling)
+                sibling = sibling.getnext()
+        return siblings
 
 
 
