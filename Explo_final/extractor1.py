@@ -394,34 +394,62 @@ class CustomExtractor:
     
         return unique_list(authors)
 
+    
     def finddate(self,doc,url):
-        def check_date(str):
-            if str:
+        
+        def check_date(date_str):
+            if date_str:
                 try:
-                    return date_checker(str)
-                    #to deal with any error in input or invaid format of date
+                    
+                    cleaned_date_str = date_str.replace(',', '')
+                    
+                    return date_checker(cleaned_date_str)
                 except (ValueError, OverflowError, AttributeError, TypeError):
                     return None
             else:
                 return None
-    
-        
+
         STRICT_DATE_REGEX = re.compile(r'\/(\d{4})\/(\d{2})\/(\d{2})\/')
-        date_patterns = [re.compile(r'\d{4}-\d{2}-\d{2} [A-Za-z]{2}[A-Za-z]*T', re.IGNORECASE),
+        date_patterns = [re.compile(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})', re.IGNORECASE),
+                        re.compile(r'\d{4}-\d{2}-\d{2} [A-Za-z]{2}[A-Za-z]*T', re.IGNORECASE),
                         re.compile(r'([a-zA-Z]+?\s?\d{1,2}\s?\,?\s?\d{4}\s?,?\s?\d{1,2}:\d{2}(?:\s?[APMapm]{2}\s?| IST\s?))|(\d{2}\s*[a-zA-Z]+\s*\d{4})\s*,?\s*(\d{1,2}:\d{2}(?:\s?[APMapm]{2}\s?| IST\s?))', re.IGNORECASE),
-                         re.compile(r'([a-zA-Z]+?\s?\d{1,2}\s?\,?\s?\d{4}(?:\s?|\s*,\s*)|(\d{2}\s*[a-zA-Z]+\s*\d{4}))', re.IGNORECASE),
-                         re.compile(r'(\w+\s+\d{1,2},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2}\s*[APMapm]{2}\s*PT)', re.IGNORECASE)]
+                        re.compile(r'([a-zA-Z]+?\s?\d{1,2}\s?\,?\s?\d{4}(?:\s?|\s*,\s*)|(\d{2}\s*[a-zA-Z]+\s*\d{4}))', re.IGNORECASE),
+                        re.compile(r'(\w+\s+\d{1,2},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2}\s*[APMapm]{2}\s*PT)', re.IGNORECASE)]
+        #it is for matching in group(0) that means only 1 pattern atmost is present in which it is passed
+        def patternmatch(str):
+            date_regix=STRICT_DATE_REGEX
+            date_match = date_regix.search(str)
+            if date_match:
+                date_str = date_match.group(0)
+                if(date_str):
+                    return date_str
 
-       
+            date_regix = re.compile(r'(\d{4})-(\d{2})-(\d{2})')
+            date_match = date_regix.search(str)
+            if date_match:
+                date_str = date_match.group(0)
+                if(date_str):
+                    return date_str
+                    
 
+
+            for pattern in date_patterns:
+                alt_date_match = pattern.search(str)
+                if alt_date_match:
+                    date_str = alt_date_match.group(0)
+                    if(date_str):
+                        return date_str
+
+            return None
         
+
         parser=HTMLParser(doc)
         html_text=parser.all_text()
 
-        # patterns = re.compile(r'(?:article.*publish|publish.*article|\bdate\b|\btime\b)')
+        patterns = re.compile(r'(?:article.*publish|publish.*article|\bdate\b|\btime\b)')
         
-        attribute_name= ['name', 'class','id','rel', 'itemprop', 'pubdate', 'property']
-        attribute_value=['bar','value-title','post-time','news-detail_newsInfo__dv0be','uk-text-muted','story-changeddate','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','art_plat','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
+        attribute_name= ['id', 'class','name','rel', 'itemprop', 'pubdate', 'property']
+        attribute_value=['art_plat','info_l','bar','value-title','post-time','news-detail_newsInfo__dv0be','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
                         ]
 
         #attribute pattern search for word in attribute values not exact attribute value
@@ -432,34 +460,51 @@ class CustomExtractor:
                 data_objects.extend(matches)
 
         for element in data_objects:
+            str_content=element.text_content().strip()
+            datetime = check_date(str_content)
+            if datetime:
+                return datetime
+            else:
+                str=patternmatch(str_content)
+                
+                if str:
+                    date = check_date(str)
+                    
+                    if date:
+                        return date
+             
             if element.tag == 'meta':
                 str_content = element.get('content', '') 
                 datetime = check_date(str_content)
                 if datetime:
                     return datetime
-            else:
-                str_content=element.text_content().strip()
-                datetime = check_date(str_content)
-                if datetime:
-                    return datetime
         #some south east asian websites uses dates in url
-        date = STRICT_DATE_REGEX.findall(url)
+        date = patternmatch(url)
         if date:
             datetime = check_date(date)
             if datetime:
                 return datetime
 
+        
         # to serach strict date rigix if any in whole html text
+        
         date_match = STRICT_DATE_REGEX.search(html_text)
         if date_match:
-            date_str = date_match.group(0)
+            date_str = date_match.group(1)
             datetime = check_date(date_str)
             if datetime:
                 return datetime
-            
-
-      
-        #to search for date if it have random datte class neither strict date regix
+        
+        #changing pattern to dated standard pattern having - in between
+        STRICT_DATE_REGEX = re.compile(r'(\d{4})-(\d{2})-(\d{2})')
+        date_match = STRICT_DATE_REGEX.search(html_text)
+        if date_match:
+            date_str = date_match.group(1)
+            datetime = check_date(date_str)
+            if datetime:
+                return datetime
+        
+         # to search for date if it have random datte class neither strict date regix
         for pattern in date_patterns:
             alt_date_match = pattern.search(html_text)
             if alt_date_match:
@@ -470,7 +515,6 @@ class CustomExtractor:
                         return datetime
        
         return None
-    
 
 
 
