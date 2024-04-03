@@ -58,22 +58,22 @@ def cleaning_function(best_node,parser):
 
 
 
-    for node in best_node.find_all(tag_types[0]) + best_node.find_all(tag_types[2]):
-    # for node in parser.find_all_lxml(node=best_node,tag=tag_types[0]) + parser.find_all_lxml(node=best_node,tag=tag_types[2]):
+    # for node in best_node.find_all(tag_types[0]) + best_node.find_all(tag_types[2]):
+    for node in parser.find_all_lxml(node=best_node,tag=tag_types[0]) + parser.find_all_lxml(node=best_node,tag=tag_types[2]):
         parent_list = []
-        # parent = node.getparent()
-        parent = node.parent
+        parent = node.getparent()
+        # parent = node.parent
         cnt = 0
         while(cnt < 5):
            parent_list.append(parent)
-        #    parent = parent.getparent()
-           parent = parent.parent
+           parent = parent.getparent()
+        #    parent = parent.parent
            cnt = cnt+1
         
         flag = 0
         for node in parent_list:
-        #    if(node.tag == "form"):
-             if(node.name == "form"):
+           if(node.tag == "form"):
+            #  if(node.name == "form"):
               flag = 1
               break
         
@@ -81,11 +81,11 @@ def cleaning_function(best_node,parser):
            continue
             
         try:
-        #    lst = parser.find_all_lxml(node=node)
-        #    if len(lst) == 0 or any(child.name in ['a', 'em', 'span'] for child in node.getchildren()):
-             if(len(node.find_all() == 0) or any(child.name in ['a', 'em', 'span'] for child in node.children)):
-                text = node.get_text(strip=True)
-                # text = node.text_content().strip()
+           lst = parser.find_all_lxml(node=node)
+           if len(lst) == 0 or any(child.name in ['a', 'em', 'span'] for child in node.getchildren()):
+            #  if(len(node.find_all() == 0) or any(child.name in ['a', 'em', 'span'] for child in node.children)):
+                # text = node.get_text(strip=True)
+                text = node.text_content().strip()
                 text = process_text(text,undesired_words_pattern)
                 if len(text) >= 10:
                     content.append(text)
@@ -120,15 +120,15 @@ def cleaning_function(best_node,parser):
 
 
     else:
-      for node in best_node.find_all(tag_types[1]):
-    #   for node in parser.find_all_lxml(node=best_node,tag=tag_types[0]):
+    #   for node in best_node.find_all(tag_types[1]):
+      for node in parser.find_all_lxml(node=best_node,tag=tag_types[0]):
         try:
             
-        #    lst = parser.find_all_lxml(node=node)
-        #    if len(lst) == 0 :
-            if len(node.find_all()) == 0:
-                text = node.get_text(strip=True)
-                # text = node.text_content().strip()
+           lst = parser.find_all_lxml(node=node)
+           if len(lst) == 0 :
+            # if len(node.find_all()) == 0:
+                # text = node.get_text(strip=True)
+                text = node.text_content().strip()
                 text = process_text(text,undesired_words_pattern)
                 if len(text) >= 10:
                     content.append(text)
@@ -168,5 +168,5 @@ def cleaning_function(best_node,parser):
         for sentence in unique_content:
             print(sentence)
       else:
-        print(best_node.get_text(strip=True))
-        #   print(best_node.text_content().strip())
+        # print(best_node.get_text(strip=True))
+          print(best_node.text_content().strip())

@@ -6,7 +6,7 @@ import re
 from lxmlparser1 import HTMLParser
 
 
-from bs4 import BeautifulSoup
+# from bs4 import BeautifulSoup
 from dateutil.parser import parse as date_checker
 from stopwords import stop_word_lis
 
@@ -22,14 +22,14 @@ class CustomExtractor:
     def calculate_gravity_score(self, tag):
         # Your custom logic to calculate the gravity score
         # This example uses the length of text content as a score
-        text_content = tag.get_text(strip=True)
-        # text_content = tag.text_content().strip()
+        # text_content = tag.get_text(strip=True)
+        text_content = tag.text_content().strip()
         return len(text_content)
 
     def previousSiblings(self,node):
       try:
-        return [n for n in node.itersiblings(preceding=True)]
-        # return [n for n in self.parser.iteratesib(node=node,preceding=True)]
+        # return [n for n in node.itersiblings(preceding=True)]
+        return [n for n in self.parser.iteratesib(node=node,preceding=True)]
       except:
         return []
     def nieghbourhood_aggregation(self, node):
@@ -39,8 +39,8 @@ class CustomExtractor:
     def linkage(self, node):
 
         # For simplicity, this example checks if the node contains more than 5 links
-        links = node.find_all('a')
-        # links = self.parser.find_all_lxml(node=node,tag='a')
+        # links = node.find_all('a')
+        links = self.parser.find_all_lxml(node=node,tag='a')
         return len(links) > 5
 
 
@@ -53,13 +53,13 @@ class CustomExtractor:
         text_containers = self.nieghbourhood_aggregation(node)
         # print(len(text_containers))
         for current_node in text_containers:
-            current_node_tag = current_node.name
-            # current_node_tag = current_node.tag
+            # current_node_tag = current_node.name
+            current_node_tag = current_node.tag
             if current_node_tag == para:
                 if steps_away >= max_stepsaway_from_node:
                     return False
-                paragraph_text = current_node.get_text(strip=True)
-                # paragraph_text = current_node.text_content().strip()
+                # paragraph_text = current_node.get_text(strip=True)
+                paragraph_text = current_node.text_content().strip()
                 word_stats = self.stop_words_chck(paragraph_text)
                 # print(word_stats)
                 if word_stats > minimum_stopword_count:
@@ -79,12 +79,12 @@ class CustomExtractor:
 
 
     def count_paragraph_tags_on_same_level_with_depth(self,element, depth=0):
-        paragraph_tags = element.find_all('p', recursive=False)
-        # paragraph_tags = self.parser.find_all_lxml(node=element,tag='p', recursive=False)
+        # paragraph_tags = element.find_all('p', recursive=False)
+        paragraph_tags = self.parser.find_all_lxml(node=element,tag='p', recursive=False)
         if paragraph_tags:
             return len(paragraph_tags), depth
-        for child in element.children:
-        # for child in element.getchildren():
+        # for child in element.children:
+        for child in element.getchildren():
             try:
                 num_paragraphs, child_depth = self.count_paragraph_tags_on_same_level_with_depth(child, depth=depth+1)
             except:
@@ -95,12 +95,12 @@ class CustomExtractor:
 
 
     def count_br_tags_on_same_level_with_depth(self,element, depth=0):
-        paragraph_tags = element.find_all('br', recursive=False)
-        # paragraph_tags = self.parser.find_all_lxml(node=element,tag='br', recursive=False)
+        # paragraph_tags = element.find_all('br', recursive=False)
+        paragraph_tags = self.parser.find_all_lxml(node=element,tag='br', recursive=False)
         if paragraph_tags:
             return len(paragraph_tags), depth
-        for child in element.children:
-        # for child in element.getchildren():
+        # for child in element.children:
+        for child in element.getchildren():
             try:
                 num_paragraphs, child_depth = self.count_br_tags_on_same_level_with_depth(child, depth=depth+1)
             except:
@@ -126,8 +126,8 @@ class CustomExtractor:
 
 
         for node in worthy_text_containers:
-            text_node = node.get_text()
-            # text_node = node.text_content()
+            # text_node = node.get_text()
+            text_node = node.text_content()
             word_stats = self.stop_words_chck(text_node)
             try:
                 if(node['class'] == "atricle_content"):
@@ -177,8 +177,8 @@ class CustomExtractor:
             #     print(node['class']," ",boost_score," ",boost_score2," ",boost_score3)
             # except:
             #     pass
-            text_node = node.get_text(strip=True)
-            # text_node = node.text_content().strip()
+            # text_node = node.get_text(strip=True)
+            text_node = node.text_content().strip()
             word_stats = self.stop_words_chck(text_node)/2
             temp = 0
 
@@ -214,17 +214,17 @@ class CustomExtractor:
 
 
 
-            parent_node = node.parent
-            # parent_node = node.getparent()
+            # parent_node = node.parent
+            parent_node = node.getparent()
 
             self.update_score(node,upscore)
 
             zt = self.get_score(node)
-            # if(zt > top_node_score):
-            if(node['score'] > top_node_score):
+            if(zt > top_node_score):
+            # if(node['score'] > top_node_score):
               top_node = node
-            #   top_node_score = zt
-              top_node_score = node['score']
+              top_node_score = zt
+            #   top_node_score = node['score']
 
             # print(node.name," ",word_stats," ",boost_score," ",boost_score3," ",node['score']," ",upscore)
 
@@ -236,18 +236,18 @@ class CustomExtractor:
             #   boost_score += 0
 
             x = node
-            if(node.name == 'p'):
-            # if(node.tag == 'p'):
+            # if(node.name == 'p'):
+            if(node.tag == 'p'):
                 for i in range(5):
-                    x = x.parent
-                    # x = x.getparent()
+                    # x = x.parent
+                    x = x.getparent()
                     self.update_score(x,upscore*((0.8)**i))
 
             if parent_node not in parent_text_containers:
                 parent_text_containers.append(parent_node)
 
-            parent_parent_node = parent_node.parent
-            # parent_parent_node = parent_node.getparent()
+            # parent_parent_node = parent_node.parent
+            parent_parent_node = parent_node.getparent()
             if parent_parent_node is not None:
                 self.update_node_count(parent_parent_node, 1)
 
@@ -275,8 +275,8 @@ class CustomExtractor:
     def worthy_text_containers(self, soup):
         worthy_text_containers = []
         for tag in ['div','p', 'pre', 'td','header','article']:
-            items = soup.find_all(tag)
-            # items = self.parser.find_all_lxml(tag=tag)
+            # items = soup.find_all(tag)
+            items = self.parser.find_all_lxml(tag=tag)
             worthy_text_containers += items
 #         print(worthy_text_containers)
         return worthy_text_containers
@@ -284,33 +284,33 @@ class CustomExtractor:
 
     def update_score(self, node, score):
         if 'score' not in node:
-            node['score'] = len(node.get_text(strip=True))**(0.5)
+            # node['score'] = len(node.get_text(strip=True))**(0.5)
             # node['score'] = len(node.text_content().strip())**(0.5)
-            # node.set('score', str(len(node.text_content().strip())**(0.5)))
+            node.set('score', str(len(node.text_content().strip())**(0.5)))
 
-        node['score'] += score
-        # current_score_str = node.get('score', '0')
-        # current_score = float(current_score_str)  
+        # node['score'] += score
+        current_score_str = node.get('score', '0')
+        current_score = float(current_score_str)  
 
-        # new_score = current_score + score 
+        new_score = current_score + score 
 
-        # node.set('score', str(new_score)) 
+        node.set('score', str(new_score)) 
 
     def update_node_count(self, node, count):
         if 'count' not in node:
-            node['count'] = 0
-            # node.set('count', '0')
+            # node['count'] = 0
+            node.set('count', '0')
 
-        node['count'] += count
-        # current_score_str = node.get('count', '0')
-        # current_score = float(current_score_str)  
+        # node['count'] += count
+        current_score_str = node.get('count', '0')
+        current_score = float(current_score_str)  
 
-        # new_score = current_score + count 
+        new_score = current_score + count 
 
-        # node.set('count', str(new_score)) 
+        node.set('count', str(new_score)) 
 
     def get_score(self, node):
-        return node.get('score', 0)
+        return float(node.get('score', '0'))
 
 
 

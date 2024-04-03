@@ -3,10 +3,10 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from urllib.parse import urlencode
 from lxmlparser1 import HTMLParser
-from extractor import CustomExtractor
+from extractor1 import CustomExtractor
 
 
-from cleaner import cleaning_function
+from cleaner1 import cleaning_function
 
 url="https://www.gadgetsnow.com/gn-advertorial/enter-the-new-era-of-mobile-technology-as-samsung-is-all-set-to-introduce-the-revolutionary-galaxy-ai/articleshow/106867089.cms?upcache=2&_gl=1*1ncy8wg*_ga*MzI4MzUwNDA5LjE2OTI1NTY4MTQ.*_ga_FCN624MN68*MTcwNTkxOTU1Ny4xMS4xLjE3MDU5MTk4MTIuNjAuMC4w"
 url = input("Please Enter the url :")
@@ -69,6 +69,7 @@ if best_node:
     except:
         pass
     # print(best_node.get_text(strip=True))
+    print(best_node.text_content().strip())
     cleaning_function(best_node,parser)
     
 else:
