@@ -62,6 +62,32 @@ class HTMLParser:
             parent = element.getparent()
             parents.append(parent)
         return parents
+    
+    def iteratesib(self,node, preceding=False):
+        siblings = []
+        if preceding:
+            sibling = node.getprevious()
+            while sibling is not None:
+                siblings.append(sibling)
+                sibling = sibling.getprevious()
+        else:
+            sibling = node.getnext()
+            while sibling is not None:
+                siblings.append(sibling)
+                sibling = sibling.getnext()
+        return siblings
+    
+    def find_all_lxml(self, tag=None, recursive=True):
+        if tag:
+            query = ".//{}".format(tag)
+        else:
+            query = ".//*"
+        if recursive:
+            elements = self.tree.xpath(query)
+        else:
+            elements = self.tree.findall(query)
+        return elements
+
 
 
     def children(self, tag_name=None, attribute_name=None, attribute_value=None):
@@ -189,6 +215,26 @@ class HTMLParser:
     
         return elements
     
+    def iteratesib(self,node, preceding=False):
+        
+        siblings = []
+        if preceding:
+            sibling = node.getprevious()
+            
+            while sibling is not None:
+                siblings.append(sibling)
+                sibling = sibling.getprevious()
+                
+        else:       
+            next= sibling = node.getnext()
+            
+            while next is not None:
+                    siblings.append(next)
+                    sibling = sibling.getnext()
+        
+        
+        return siblings
+    
     def find_all_lxml(self, node=None, tag=None, recursive=True):
         if node is not None:
             if tag:
@@ -198,7 +244,7 @@ class HTMLParser:
             if recursive:
                 elements = node.xpath(query)
             else:
-                elements = node.findall(query)
+                elements = node.xpath("./*")  # Only immediate children
         else:
             if tag:
                 query = ".//{}".format(tag)
@@ -207,22 +253,7 @@ class HTMLParser:
             if recursive:
                 elements = self.tree.xpath(query)
             else:
-                elements = self.tree.findall(query)
+                elements = self.tree.xpath("./*")  # Only immediate children
+    
         return elements
-
-    def iteratesib(self,node, preceding=False):
-        siblings = []
-        if preceding:
-            sibling = node.getprevious()
-            while sibling is not None:
-                siblings.append(sibling)
-                sibling = sibling.getprevious()
-        else:
-            sibling = node.getnext()
-            while sibling is not None:
-                siblings.append(sibling)
-                sibling = sibling.getnext()
-        return siblings
-
-
 
