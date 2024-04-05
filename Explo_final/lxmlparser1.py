@@ -31,8 +31,10 @@ class HTMLParser:
         elif not tag_name and attribute_name and attribute_value:
         
             xpath_query = f'//*[@{attribute_name}="{attribute_value}"]'
-        else:
+        elif tag_name:
             xpath_query = f'//{tag_name}'
+        else:
+            return None
     
         elements = self.tree.xpath(xpath_query)
     
@@ -51,8 +53,10 @@ class HTMLParser:
             xpath_query = f'//{tag_name}[@{attribute_name}="{attribute_value}"]'
         elif not tag_name and attribute_name and attribute_value:
             xpath_query = f'//*[@{attribute_name}="{attribute_value}"]'
-        else:
+        elif tag_name:
             xpath_query = f'//{tag_name}'
+        else:
+            return None
     
         elements = self.tree.xpath(xpath_query)
         parents=[]
@@ -96,17 +100,19 @@ class HTMLParser:
             xpath_query = f'//{tag_name}[@{attribute_name}="{attribute_value}"]'
         elif not tag_name and attribute_name and attribute_value:
             xpath_query = f'//*[@{attribute_name}="{attribute_value}"]'
-        else:
+        elif tag_name:
             xpath_query = f'//{tag_name}'
+        else:
+            return None
         
         elements = self.tree.xpath(xpath_query)
         for element in elements:
-            parent = element.getparent()
-            if parent is not None:
-                result_dict = {'tag': parent.tag, 'attributes': {}}
+            child = element.getchidren()
+            if child is not None:
+                result_dict = {'tag':child.tag, 'attributes': {}}
                     
                     
-                for key, value in parent.items():
+                for key, value in child.items():
                     result_dict['attributes'][key] = value
                     
                 result_list.append(result_dict)
