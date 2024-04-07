@@ -519,116 +519,86 @@ class CustomExtractor:
 
 
 
-    def split_title(self,title, splitter, hint=None):
-        """Split the title to best part possible"""
-        large_text_length = 0
-        large_text_index = 0
+    def extract_best_part(self,title, splitter, ans=None):
+        """Extracts the most relevant part of the title"""
+        best_length = 0
+        best_index = 0
         title_pieces = title.split(splitter)
-        if hint and hint!='':
-            filter_regex = re.compile(r'[^a-zA-Z0-9\ ]')
-            hint = filter_regex.sub('', hint).lower()
+        if ans and ans != '':
+            ans_filter = re.compile(r'[^a-zA-Z0-9\ ]')
+            ans = ans_filter.sub('', ans).lower()
 
-        # find the largest title piece
         for i, title_piece in enumerate(title_pieces):
             current = title_piece.strip()
-            #Immediately break if any part matches
-            if hint and hint in filter_regex.sub('', current).lower():
-                large_text_index = i
+            if ans and ans in ans_filter.sub('', current).lower():
+                best_index = i
                 break
-            if len(current) > large_text_length:
-                large_text_length = len(current)
-                large_text_index = i
+            if len(current) > best_length:
+                best_length = len(current)
+                best_index = i
+        title = title_pieces[best_index]
+        return title    
 
-    #     Even if no part matches with hint(h1) if prints simply the longest part as the parts
-    #     are usually of independent meaning
-        title = title_pieces[large_text_index]
-        return title
-    def get_title(self,soup):
-        """Explicit rules:
-        1. title == h1, no need to split
-        2. h1 similar to og:title, use h1
-        3. title contains h1, title contains og:title, len(h1) > len(og:title), use h1
-        4. title starts with og:title, use og:title
-        5. use title, after splitting
-        """
-        title = ''
-        title_element = soup.title
+    def fetch_title(self,parser):
 
-        # no title found
-        if title_element is None or len(title_element) == 0:
+        extracted_title = ''
+        title_elements = parser.findalltags('title')
+
+        if title_elements is None or len(title_elements) == 0:
             print("Error")
-            return title
+            return extracted_title
 
-        # title elem found
-        title_text = title_element.text
-        used_delimeter = False
+        # Title element found
+        title_text = parser.textbytag(title_elements[0]['tag'])[0]
+        used = False
 
-    #     title from h1
-            # - extract the longest text from all h1 elements
-        # - too short texts (fewer than 2 words) are discarded
-        # - clean double spaces
-    #     h1_element = soup.find_all('h1')[0]
-    #     title_text_h1 = h1_element.text
-        title_text_h1=''
-        title_element_h1_list = soup.find_all('h1')
-        title_text_h1_list = [tag.get_text(strip=True) for tag in title_element_h1_list]
+        title_text_h1 = ''
+        title_element_h1_list = soup.findalltags('h1')
+        
+        title_text_h1_list = [parser.textbytag(tag_name=tag['tag'],attribute_name='class',attribute_value=tag['attributes'].get('class', None))[0] for tag in title_element_h1_list]
+
         if title_text_h1_list:
             title_text_h1_list.sort(key=len, reverse=True)
-            #longest title
-            title_text_h1 = title_text_h1_list[0]
-            # clean double spaces
-            title_text_h1 = ' '.join([x for x in title_text_h1.split() if x])
-        #title from meta tag(not user-visible)
-        meta_tag_content = soup.find({'meta': {'property': 'og:title'}})
+            title_text_h1 = ' '.join([x for x in title_text_h1_list[0].split() if x])
+
+        meta_tag_content = parser.findallbyattribute(attribute_name='property', attribute_value='og:title')
         if not meta_tag_content:
-            meta_tag_content = soup.find({'meta': {'name': 'og:title'}})
-        title_text_meta = meta_tag_content.get('content', '')  # Empty string if no meta tag found
-        # Further filtering of unwanted characters
-        # Alphanumeric characters, punctuation and alphanumeric
+            meta_tag_content = parser.findallbyattribute(attribute_name='name', attribute_value='og:title')
+        title_text_meta = parser.textbytag(meta_tag_content[0]['tag'])[0] if meta_tag_content else ''
+
         filter_regex = re.compile(r'[^a-zA-Z0-9\ ]')
-        filter_title_text = filter_regex.sub('', title_text).lower()
-        filter_title_text_h1 = filter_regex.sub('', title_text_h1).lower()
-        filter_title_text_meta = filter_regex.sub('', title_text_meta).lower()
+        filtered_title_text = filter_regex.sub('', title_text).lower()
+        filtered_title_text_h1 = filter_regex.sub('', title_text_h1).lower()
+        filtered_title_text_meta = filter_regex.sub('', title_text_meta).lower()
+        
+        if filtered_title_text_h1  == filtered_title_text:
+            extracted_title = filtered_title_text
+            used = True
+        elif filtered_title_text_h1 and filtered_title_text_h1 == filtered_title_text_meta:
+            extracted_title = title_text_h1
+            used= True
+        elif filtered_title_text_h1 and filtered_title_text_h1 in filtered_title_text and filtered_title_text_meta is not '' and filtered_title_text_meta in filtered_title_text and len(title_text_h1) > len(title_text_meta):
+            used = True
+        elif filtered_title_text_meta and filtered_title_text_meta != filtered_title_text and filtered_title_text.startswith(filtered_title_text_meta):
+            extracted_title = title_text_meta
+            used = True
+        if not used and '|' in title_text:
+            extracted_title = self.extract_best_part(title_text, '|', title_text_h1)
+            used = True
 
-        # Case1: If both matches don't do anything
-        if title_text_h1 == title_text:
-            used_delimeter = True
-        # Case2: h1 and meta tag matches(either of h1 or meta)
-        elif filter_title_text_h1 and filter_title_text_h1 == filter_title_text_meta:
-            title_text = title_text_h1
-            used_delimeter = True
-        # Case3: If both h1 and meta are a substring of title_text(use h1)
-        elif filter_title_text_h1 and filter_title_text_h1 in filter_title_text and filter_title_text_meta in filter_title_text  and len(title_text_h1) > len(title_text_meta):
-            title_text = title_text_h1
-            used_delimeter = True
-        # Case4: If title_text startswith meta text(replace with meta)
-        elif filter_title_text_meta and filter_title_text_meta != filter_title_text and filter_title_text.startswith(filter_title_text_meta):
-            title_text = title_text_meta
-            used_delimeter = True
+        if not used and '-' in title_text:
+            extracted_title = self.extract_best_part(title_text, '-', title_text_h1)
+            used = True
 
-        # If none of the above condition is matched, means a delimiter must be present between them
-        # Now individually parts separated by delimiter has to be checked and now we check with h1 tag only(no meta tag)-Observation based
-        if not used_delimeter and '|' in title_text:
-            title_text = self.split_title(title_text, '|', title_text_h1)
-            used_delimeter = True
+        if not used and '_' in title_text:
+            extracted_title = self.extract_best_part(title_text, '_', title_text_h1)
+            used = True
 
-        # self.split title with -
-        if not used_delimeter and '-' in title_text:
-            title_text = self.split_title(title_text, '-', title_text_h1)
-            used_delimeter = True
+        if not used and '/' in title_text:
+            extracted_title = self.extract_best_part(title_text, '/', title_text_h1)
+            used= True
 
-        # self.split title with _
-        if not used_delimeter and '_' in title_text:
-            title_text = self.split_title(title_text, '_', title_text_h1)
-            used_delimeter = True
-
-        # self.split title with /
-        if not used_delimeter and '/' in title_text:
-            title_text = self.split_title(title_text, '/', title_text_h1)
-            used_delimeter = True
-
-        # self.split title with »
-        if not used_delimeter and ' » ' in title_text:
-            title_text = self.split_title(title_text, ' » ', title_text_h1)
-            used_delimeter = True
-        return title_text
+        if not used and ' » ' in title_text:
+            extracted_title = self.extract_best_part(title_text, ' » ', title_text_h1)
+            used = True
+        return extracted_title
