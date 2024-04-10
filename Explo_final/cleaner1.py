@@ -59,7 +59,11 @@ def cleaning_function(best_node,parser):
 
 
     # for node in best_node.find_all(tag_types[0]) + best_node.find_all(tag_types[2]):
-    for node in parser.find_all_lxml(node=best_node,tag=tag_types[0]) + parser.find_all_lxml(node=best_node,tag=tag_types[2]):
+    for node in parser.find_all_lxml(node=best_node):
+        if(node.tag != tag_types[0] and node.tag != tag_types[2]):
+            continue 
+        # print(node.tag," ",node.text_content().strip())
+        
         parent_list = []
         parent = node.getparent()
         # parent = node.parent
@@ -79,27 +83,11 @@ def cleaning_function(best_node,parser):
         
         if(flag == 1):
            continue
-            
-        try:
-           lst = parser.find_all_lxml(node=node)
-           if len(lst) == 0 or any(child.name in ['a', 'em', 'span'] for child in node.getchildren()):
-            #  if(len(node.find_all() == 0) or any(child.name in ['a', 'em', 'span'] for child in node.children)):
-                # text = node.get_text(strip=True)
-                text = node.text_content().strip()
-                text = process_text(text,undesired_words_pattern)
-                if len(text) >= 10:
-                    content.append(text)
-        except:
-            continue
-
-
-    fin = []
-    if len(content) > 0:
-    #     for x in content:
-    #         if(x not in fin):
-    #           fin.append(x)
-    #     for x in fin:
-    #       print(x)
+        
+        content.append(node.text_content().strip())
+        
+    if len(content) > 5:
+    
         tfidf_vectorizer = TfidfVectorizer()
         tfidf_matrix = tfidf_vectorizer.fit_transform(content)
         cosine_similarities = cosine_similarity(tfidf_matrix, tfidf_matrix)
@@ -121,35 +109,29 @@ def cleaning_function(best_node,parser):
 
     else:
     #   for node in best_node.find_all(tag_types[1]):
-      for node in parser.find_all_lxml(node=best_node,tag=tag_types[0]):
+      for node in parser.find_all_lxml(node=best_node):
         try:
-            
-           lst = parser.find_all_lxml(node=node)
-           if len(lst) == 0 :
-            # if len(node.find_all()) == 0:
-                # text = node.get_text(strip=True)
-                text = node.text_content().strip()
-                text = process_text(text,undesired_words_pattern)
-                if len(text) >= 10:
-                    content.append(text)
-        except:
-            continue
-        # try:
-        #     if len(node.find_all()) == 0 :
-        #         text = node.get_text(strip=True)
-        #         text = process_text(text)
+           if(node.tag != tag_types[1]):
+               continue
+           print(node.text_content().strip())
+           text = node.text_content().strip()
+           text = process_text(text,undesired_words_pattern)
+           if len(text) >= 10:
+               content.append(text)
+        #    print(node.attrib)
+        #    if len(lst) == 0 :
+                
+        #     # if len(node.find_all()) == 0:
+        #         # text = node.get_text(strip=True)
+        #         text = node.text_content().strip()
+        #         text = process_text(text,undesired_words_pattern)
         #         if len(text) >= 10:
         #             content.append(text)
-        # except:
-        #     continue
-
-      fin = []
+        except:
+            continue
+      
       if len(content) > 0:
-        # for x in content:
-        #     if(x not in fin):
-        #       fin.append(x)
-        # for x in fin:
-        #   print(x)
+        
         tfidf_vectorizer = TfidfVectorizer()
         tfidf_matrix = tfidf_vectorizer.fit_transform(content)
         cosine_similarities = cosine_similarity(tfidf_matrix, tfidf_matrix)
@@ -166,7 +148,8 @@ def cleaning_function(best_node,parser):
 
         # Print unique content
         for sentence in unique_content:
-            print(sentence)
+            # print(sentence)
+            pass
       else:
         # print(best_node.get_text(strip=True))
           print(best_node.text_content().strip())
