@@ -1,4 +1,4 @@
-from bs4 import BeautifulSoup
+
 from lxml import html
 import sys
 import re
@@ -6,7 +6,7 @@ import re
 from lxmlparser1 import HTMLParser
 
 
-# from bs4 import BeautifulSoup
+
 from dateutil.parser import parse as date_checker
 from stopwords import stop_word_lis
 
@@ -329,16 +329,16 @@ class CustomExtractor:
             return False
         # to filter output written by tag text or content
         def filter(str):
-            
+            #filtering < or > if by any chance through comments etc.
             str = ''.join(char for char in str if char != '<' and char != '>')
-
-            str = re.sub(r'\b(by:|by|from:|image|of|real|oru|development|three|minors|killed|fire|pokhara|tourism|council|hands|memo|biotechnology|nbspjanuary|lifestyle|travel|times|public|company|source|screen|korea|battery|glass|screengrab|edited|close|com|october|to|bookmark|writer|laboratory|fast|staff|editor|the|concerned|india|familiar|with|integrated|view|comments|am|pm|updated|published|hd|doc|for|staying|indonesia|english|live|share|whatsapp|telegram|facebook|twitter|email|linkedin|advertisement|news|in|media|bureau)\b', '', str, flags=re.IGNORECASE).strip()
-
+            #removing all unecessary words which can't be part of name
+            str = re.sub(r'\b(by:|by|from:|image|of|real|oru|development|three|minors|killed|fire|pokhara|tourism|council|hands|memo|biotechnology|nbspjanuary|lifestyle|travel|times|public|company|source|screen|korea|battery|glass|screengrab|edited|close|com|mar|on|first|october|to|bookmark|writer|laboratory|fast|staff|editor|the|concerned|india|familiar|with|integrated|view|comments|am|pm|updated|published|hd|doc|for|staying|indonesia|english|live|share|whatsapp|telegram|facebook|twitter|email|linkedin|advertisement|news|in|media|bureau)\b', '', str, flags=re.IGNORECASE).strip()
+            #removing all inverted commas and full stop
             str = str.replace('"', ' ').replace("'", ' ').replace('-', ' ').replace('.', ' ')
-
+            #breaking string in list of words considering comma as also word
             names = re.findall(r'\w+|\,',str)
 
-    
+            #joining words to name using 'and' and comma as name end
             authors = []
             current_author = ''
 
@@ -359,23 +359,23 @@ class CustomExtractor:
             
        
         attribute_name = ['name', 'rel', 'itemprop', 'class', 'id','route']
-        attribute_value = ['uk-link-reset','info_l','Page-authors','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','article__author','article-byline__author','Byline','h6 h6--author-name'
+        attribute_value = ['uk-link-reset','info_l','Page-authors','float-left update','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','article__author','article-byline__author','Byline','h6 h6--author-name'
                           ]
-        
+        #for searching  pattern for author
         pattern= re.compile(r'(?:written by|writer|editor|with reports from|source|edited by|published by)[\s:-]+([A-Za-z]+(?:\s+[A-Za-z]+)?)', re.IGNORECASE)
-        
+        #defining parser object
         parser=HTMLParser(doc)
         
-
-           
+        #to store all object return by function
         data_objects = []
+        # to store authors name string
         authors = []
-        
+        # finding all data objects
         for attribute in attribute_name:
             for value in attribute_value:
                 found = parser.attributeobjects(attribute, value)
                 data_objects.extend(found)
-    
+        #extracting content of data objects
         for element in data_objects:
             name = ''
             if element.tag == 'meta':
@@ -388,19 +388,18 @@ class CustomExtractor:
                 authors.extend(filter(name))
         #it search for pattern described in whole text
         match = pattern.search(parser.all_text())
-
+        # appending the firts match by group 1
         if match:
             authors.extend(filter(match.group(1)))
     
         return unique_list(authors)
 
-    
     def finddate(self,doc,url):
-        
+        #function to check for date is valid or not
         def check_date(date_str):
             if date_str:
                 try:
-                    
+                    #if we not remove comma, it might return none as invalid date
                     cleaned_date_str = date_str.replace(',', '')
                     
                     return date_checker(cleaned_date_str)
@@ -408,7 +407,7 @@ class CustomExtractor:
                     return None
             else:
                 return None
-
+        #all patrerns of date
         STRICT_DATE_REGEX = re.compile(r'\/(\d{4})\/(\d{2})\/(\d{2})\/')
         date_patterns = [re.compile(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})', re.IGNORECASE),
                         re.compile(r'\d{4}-\d{2}-\d{2} [A-Za-z]{2}[A-Za-z]*T', re.IGNORECASE),
@@ -423,7 +422,7 @@ class CustomExtractor:
                 date_str = date_match.group(0)
                 if(date_str):
                     return date_str
-
+            #another date pattern search
             date_regix = re.compile(r'(\d{4})-(\d{2})-(\d{2})')
             date_match = date_regix.search(str)
             if date_match:
@@ -442,23 +441,23 @@ class CustomExtractor:
 
             return None
         
-
+        #defining parser object
         parser=HTMLParser(doc)
         html_text=parser.all_text()
 
-        patterns = re.compile(r'(?:article.*publish|publish.*article|\bdate\b|\btime\b)')
+        
         
         attribute_name= ['id', 'class','name','rel', 'itemprop', 'pubdate', 'property']
         attribute_value=['art_plat','info_l','bar','value-title','post-time','news-detail_newsInfo__dv0be','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
                         ]
 
-        #attribute pattern search for word in attribute values not exact attribute value
+        #attribute pattern search for word in attribute values not exact attribute value and data objects for storing objects
         data_objects=[]
         for attribute in attribute_name:
             for value in attribute_value:
                 matches =parser.attributepattern(attribute,value)
                 data_objects.extend(matches)
-
+        #extracting data of data objects checking them as valid date or not
         for element in data_objects:
             str_content=element.text_content().strip()
             datetime = check_date(str_content)
@@ -504,7 +503,7 @@ class CustomExtractor:
             if datetime:
                 return datetime
         
-         # to search for date if it have random datte class neither strict date regix
+         # to search for date if it have random date class neither strict date regix
         for pattern in date_patterns:
             alt_date_match = pattern.search(html_text)
             if alt_date_match:
@@ -515,9 +514,6 @@ class CustomExtractor:
                         return datetime
        
         return None
-
-
-
 
     def extract_best_part(self,title, splitter, ans=None):
         """Extracts the most relevant part of the title"""
