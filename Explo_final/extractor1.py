@@ -111,10 +111,10 @@ class CustomExtractor:
 
 
 
-    def most_imp_node(self, soup):
+    def most_imp_node(self, parser):
         top_node = None
         top_node_score = 0
-        worthy_text_containers = self.worthy_text_containers(soup)
+        worthy_text_containers = self.worthy_text_containers(parser)
         # print(worthy_text_containers)
         starting_boost = 1.0
         cnt = 0
@@ -272,10 +272,10 @@ class CustomExtractor:
 
         return top_node
 
-    def worthy_text_containers(self, soup):
+    def worthy_text_containers(self, parser):
         worthy_text_containers = []
         for tag in ['div','p', 'pre', 'td','header','article']:
-            # items = soup.find_all(tag)
+            # items = parser.find_all(tag)
             items = self.parser.find_all_lxml(tag=tag)
             worthy_text_containers += items
 #         print(worthy_text_containers)
@@ -329,16 +329,16 @@ class CustomExtractor:
             return False
         # to filter output written by tag text or content
         def filter(str):
-            #filtering < or > if by any chance through comments etc.
+            
             str = ''.join(char for char in str if char != '<' and char != '>')
-            #removing all unecessary words which can't be part of name
-            str = re.sub(r'\b(by:|by|from:|image|of|real|oru|development|three|minors|killed|fire|pokhara|tourism|council|hands|memo|biotechnology|nbspjanuary|lifestyle|travel|times|public|company|source|screen|korea|battery|glass|screengrab|edited|close|com|mar|on|first|october|to|bookmark|writer|laboratory|fast|staff|editor|the|concerned|india|familiar|with|integrated|view|comments|am|pm|updated|published|hd|doc|for|staying|indonesia|english|live|share|whatsapp|telegram|facebook|twitter|email|linkedin|advertisement|news|in|media|bureau)\b', '', str, flags=re.IGNORECASE).strip()
-            #removing all inverted commas and full stop
+
+            str = re.sub(r'\b(by:|by|from:|image|of|real|oru|development|three|minors|killed|fire|pokhara|tourism|council|hands|memo|biotechnology|nbspjanuary|lifestyle|travel|times|public|company|source|screen|korea|battery|glass|screengrab|edited|close|com|october|to|bookmark|writer|laboratory|fast|staff|editor|the|concerned|india|familiar|with|integrated|view|comments|am|pm|updated|published|hd|doc|for|staying|indonesia|english|live|share|whatsapp|telegram|facebook|twitter|email|linkedin|advertisement|news|in|media|bureau)\b', '', str, flags=re.IGNORECASE).strip()
+
             str = str.replace('"', ' ').replace("'", ' ').replace('-', ' ').replace('.', ' ')
-            #breaking string in list of words considering comma as also word
+
             names = re.findall(r'\w+|\,',str)
 
-            #joining words to name using 'and' and comma as name end
+    
             authors = []
             current_author = ''
 
@@ -359,23 +359,23 @@ class CustomExtractor:
             
        
         attribute_name = ['name', 'rel', 'itemprop', 'class', 'id','route']
-        attribute_value = ['uk-link-reset','info_l','Page-authors','float-left update','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','article__author','article-byline__author','Byline','h6 h6--author-name'
+        attribute_value = ['uk-link-reset','info_l','Page-authors','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','article__author','article-byline__author','Byline','h6 h6--author-name'
                           ]
-        #for searching  pattern for author
+        
         pattern= re.compile(r'(?:written by|writer|editor|with reports from|source|edited by|published by)[\s:-]+([A-Za-z]+(?:\s+[A-Za-z]+)?)', re.IGNORECASE)
-        #defining parser object
+        
         parser=HTMLParser(doc)
         
-        #to store all object return by function
+
+           
         data_objects = []
-        # to store authors name string
         authors = []
-        # finding all data objects
+        
         for attribute in attribute_name:
             for value in attribute_value:
                 found = parser.attributeobjects(attribute, value)
                 data_objects.extend(found)
-        #extracting content of data objects
+    
         for element in data_objects:
             name = ''
             if element.tag == 'meta':
@@ -388,122 +388,78 @@ class CustomExtractor:
                 authors.extend(filter(name))
         #it search for pattern described in whole text
         match = pattern.search(parser.all_text())
-        # appending the firts match by group 1
+
         if match:
             authors.extend(filter(match.group(1)))
     
         return unique_list(authors)
 
     def finddate(self,doc,url):
-        #function to check for date is valid or not
-        def check_date(date_str):
-            if date_str:
+        def check_date(str):
+            if str:
                 try:
-                    #if we not remove comma, it might return none as invalid date
-                    cleaned_date_str = date_str.replace(',', '')
-                    
-                    return date_checker(cleaned_date_str)
+                    return date_checker(str)
+                    #to deal with any error in input or invaid format of date
                 except (ValueError, OverflowError, AttributeError, TypeError):
                     return None
             else:
                 return None
-        #all patrerns of date
-        STRICT_DATE_REGEX = re.compile(r'\/(\d{4})\/(\d{2})\/(\d{2})\/')
-        date_patterns = [re.compile(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s+(\d{4})', re.IGNORECASE),
-                        re.compile(r'\d{4}-\d{2}-\d{2} [A-Za-z]{2}[A-Za-z]*T', re.IGNORECASE),
-                        re.compile(r'([a-zA-Z]+?\s?\d{1,2}\s?\,?\s?\d{4}\s?,?\s?\d{1,2}:\d{2}(?:\s?[APMapm]{2}\s?| IST\s?))|(\d{2}\s*[a-zA-Z]+\s*\d{4})\s*,?\s*(\d{1,2}:\d{2}(?:\s?[APMapm]{2}\s?| IST\s?))', re.IGNORECASE),
-                        re.compile(r'([a-zA-Z]+?\s?\d{1,2}\s?\,?\s?\d{4}(?:\s?|\s*,\s*)|(\d{2}\s*[a-zA-Z]+\s*\d{4}))', re.IGNORECASE),
-                        re.compile(r'(\w+\s+\d{1,2},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2}\s*[APMapm]{2}\s*PT)', re.IGNORECASE)]
-        #it is for matching in group(0) that means only 1 pattern atmost is present in which it is passed
-        def patternmatch(str):
-            date_regix=STRICT_DATE_REGEX
-            date_match = date_regix.search(str)
-            if date_match:
-                date_str = date_match.group(0)
-                if(date_str):
-                    return date_str
-            #another date pattern search
-            date_regix = re.compile(r'(\d{4})-(\d{2})-(\d{2})')
-            date_match = date_regix.search(str)
-            if date_match:
-                date_str = date_match.group(0)
-                if(date_str):
-                    return date_str
-                    
-
-
-            for pattern in date_patterns:
-                alt_date_match = pattern.search(str)
-                if alt_date_match:
-                    date_str = alt_date_match.group(0)
-                    if(date_str):
-                        return date_str
-
-            return None
+    
         
-        #defining parser object
+        STRICT_DATE_REGEX = re.compile(r'\/(\d{4})\/(\d{2})\/(\d{2})\/')
+        date_patterns = [re.compile(r'\d{4}-\d{2}-\d{2} [A-Za-z]{2}[A-Za-z]*T', re.IGNORECASE),
+                        re.compile(r'([a-zA-Z]+?\s?\d{1,2}\s?\,?\s?\d{4}\s?,?\s?\d{1,2}:\d{2}(?:\s?[APMapm]{2}\s?| IST\s?))|(\d{2}\s*[a-zA-Z]+\s*\d{4})\s*,?\s*(\d{1,2}:\d{2}(?:\s?[APMapm]{2}\s?| IST\s?))', re.IGNORECASE),
+                         re.compile(r'([a-zA-Z]+?\s?\d{1,2}\s?\,?\s?\d{4}(?:\s?|\s*,\s*)|(\d{2}\s*[a-zA-Z]+\s*\d{4}))', re.IGNORECASE),
+                         re.compile(r'(\w+\s+\d{1,2},?\s+\d{4})\s*\|\s*(\d{1,2}:\d{2}\s*[APMapm]{2}\s*PT)', re.IGNORECASE)]
+
+       
+
+        
         parser=HTMLParser(doc)
         html_text=parser.all_text()
 
+        # patterns = re.compile(r'(?:article.*publish|publish.*article|\bdate\b|\btime\b)')
         
-        
-        attribute_name= ['id', 'class','name','rel', 'itemprop', 'pubdate', 'property']
-        attribute_value=['art_plat','info_l','bar','value-title','post-time','news-detail_newsInfo__dv0be','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
+        attribute_name= ['name', 'class','id','rel', 'itemprop', 'pubdate', 'property']
+        attribute_value=['bar','value-title','post-time','news-detail_newsInfo__dv0be','uk-text-muted','story-changeddate','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','art_plat','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
                         ]
 
-        #attribute pattern search for word in attribute values not exact attribute value and data objects for storing objects
+        #attribute pattern search for word in attribute values not exact attribute value
         data_objects=[]
         for attribute in attribute_name:
             for value in attribute_value:
                 matches =parser.attributepattern(attribute,value)
                 data_objects.extend(matches)
-        #extracting data of data objects checking them as valid date or not
+
         for element in data_objects:
-            str_content=element.text_content().strip()
-            datetime = check_date(str_content)
-            if datetime:
-                return datetime
-            else:
-                str=patternmatch(str_content)
-                
-                if str:
-                    date = check_date(str)
-                    
-                    if date:
-                        return date
-             
             if element.tag == 'meta':
                 str_content = element.get('content', '') 
                 datetime = check_date(str_content)
                 if datetime:
                     return datetime
+            else:
+                str_content=element.text_content().strip()
+                datetime = check_date(str_content)
+                if datetime:
+                    return datetime
         #some south east asian websites uses dates in url
-        date = patternmatch(url)
+        date = STRICT_DATE_REGEX.findall(url)
         if date:
             datetime = check_date(date)
             if datetime:
                 return datetime
 
-        
         # to serach strict date rigix if any in whole html text
-        
         date_match = STRICT_DATE_REGEX.search(html_text)
         if date_match:
-            date_str = date_match.group(1)
+            date_str = date_match.group(0)
             datetime = check_date(date_str)
             if datetime:
                 return datetime
-        
-        #changing pattern to dated standard pattern having - in between
-        STRICT_DATE_REGEX = re.compile(r'(\d{4})-(\d{2})-(\d{2})')
-        date_match = STRICT_DATE_REGEX.search(html_text)
-        if date_match:
-            date_str = date_match.group(1)
-            datetime = check_date(date_str)
-            if datetime:
-                return datetime
-        
-         # to search for date if it have random date class neither strict date regix
+            
+
+      
+        #to search for date if it have random datte class neither strict date regix
         for pattern in date_patterns:
             alt_date_match = pattern.search(html_text)
             if alt_date_match:
@@ -514,6 +470,10 @@ class CustomExtractor:
                         return datetime
        
         return None
+    
+
+
+
 
     def extract_best_part(self,title, splitter, ans=None):
         """Extracts the most relevant part of the title"""
@@ -536,31 +496,31 @@ class CustomExtractor:
         return title    
 
     def fetch_title(self,parser):
-
+        
         extracted_title = ''
-        title_elements = parser.findalltags('title')
+        title_elements = parser.find_all_tags('title')
 
         if title_elements is None or len(title_elements) == 0:
             print("Error")
             return extracted_title
 
         # Title element found
-        title_text = parser.textbytag(title_elements[0]['tag'])[0]
+        title_text = parser.get_text_by_tag(title_elements[0]['tag'])[0]
         used = False
 
         title_text_h1 = ''
-        title_element_h1_list = soup.findalltags('h1')
+        title_element_h1_list = parser.find_all_tags('h1')
         
-        title_text_h1_list = [parser.textbytag(tag_name=tag['tag'],attribute_name='class',attribute_value=tag['attributes'].get('class', None))[0] for tag in title_element_h1_list]
+        title_text_h1_list = [parser.get_text_by_tag(tag_name=tag['tag'],attribute_name='class',attribute_value=tag['attributes'].get('class', None))[0] for tag in title_element_h1_list]
 
         if title_text_h1_list:
             title_text_h1_list.sort(key=len, reverse=True)
             title_text_h1 = ' '.join([x for x in title_text_h1_list[0].split() if x])
 
-        meta_tag_content = parser.findallbyattribute(attribute_name='property', attribute_value='og:title')
+        meta_tag_content = parser.find_all_by_attribute(attribute_name='property', attribute_value='og:title')
         if not meta_tag_content:
-            meta_tag_content = parser.findallbyattribute(attribute_name='name', attribute_value='og:title')
-        title_text_meta = parser.textbytag(meta_tag_content[0]['tag'])[0] if meta_tag_content else ''
+            meta_tag_content = parser.find_all_by_attribute(attribute_name='name', attribute_value='og:title')
+        title_text_meta = parser.get_text_by_tag(meta_tag_content[0]['tag'])[0] if meta_tag_content else ''
 
         filter_regex = re.compile(r'[^a-zA-Z0-9\ ]')
         filtered_title_text = filter_regex.sub('', title_text).lower()
@@ -573,7 +533,7 @@ class CustomExtractor:
         elif filtered_title_text_h1 and filtered_title_text_h1 == filtered_title_text_meta:
             extracted_title = title_text_h1
             used= True
-        elif filtered_title_text_h1 and filtered_title_text_h1 in filtered_title_text and filtered_title_text_meta is not '' and filtered_title_text_meta in filtered_title_text and len(title_text_h1) > len(title_text_meta):
+        elif filtered_title_text_h1 and filtered_title_text_h1 in filtered_title_text and filtered_title_text_meta !='' and filtered_title_text_meta in filtered_title_text and len(title_text_h1) > len(title_text_meta):
             used = True
         elif filtered_title_text_meta and filtered_title_text_meta != filtered_title_text and filtered_title_text.startswith(filtered_title_text_meta):
             extracted_title = title_text_meta

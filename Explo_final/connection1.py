@@ -1,6 +1,6 @@
 import requests
-from bs4 import BeautifulSoup
-import pandas as pd
+
+# import pandas as pd
 from urllib.parse import urlencode
 from lxmlparser1 import HTMLParser
 from extractor1 import CustomExtractor
@@ -22,9 +22,8 @@ params = {'api_key': API_KEY, 'url': url}
 response = requests.get('http://api.scraperapi.com/', params=urlencode(params))
 response.raise_for_status()
 
-soup = BeautifulSoup(response.text, 'html.parser')
 
-# print(soup)
+# print(html_content)
 # Create an instance of CustomExtractor
 extractor = CustomExtractor(response.text)
 html_content= response.text
@@ -50,14 +49,14 @@ print("date of publication:",date)
 
 
 
-title_list=extractor.get_title(soup)
+title_list=extractor.fetch_title(parser)
 print("title  is/are")
 
-print(extractor.get_title(soup))
+print(extractor.fetch_title(parser))
 
 
 # Calculate best node based on custom gravity scores
-best_node = extractor.most_imp_node(soup)
+best_node = extractor.most_imp_node(html_content)
 
 print("\n\n")
 # Now, you ca
