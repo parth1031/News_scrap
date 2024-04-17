@@ -259,7 +259,7 @@ class CustomExtractor:
 
     def worthy_text_containers(self, parser):
         worthy_text_containers = []
-        for tag in ['div','p', 'pre', 'td','header','article']:
+        for tag in ['div','p', 'pre', 'td','header','article','main']:
             # items = parser.find_all(tag)
             items = self.parser.find_all_lxml(tag=tag)
             for i in items:
