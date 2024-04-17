@@ -130,12 +130,9 @@ class CustomExtractor:
 
         # print(worthy_text_containers)
         starting_boost = 1.0
-        cnt = 0
-        i = 0
         parent_text_containers = []
         text_containers_with_text = []
 
-        pre_def_classes = ["SY2GX mb40","atricle_content",""]
 
 
         for node in worthy_text_containers:
@@ -159,19 +156,11 @@ class CustomExtractor:
                 # print("Yes")
                 text_containers_with_text.append(node)
 
-        text_containers_number = len(text_containers_with_text)
-        negative_scoring = 0
-        bottom_negativescore_text_containers = text_containers_number * 0.25
+        
 
         # print(text_containers_with_text)
         for node in text_containers_with_text:
 
-            try:
-                if(node['class'] == "article_content"):
-                    return node
-            except:
-                pass
-#             print(type(node))
             boost_score = 0
             depth = 0
 
@@ -189,12 +178,6 @@ class CustomExtractor:
             except:
               depth3 += 0
 
-
-            try:
-                print(node['class']," ",boost_score," ",boost_score2," ",boost_score3)
-            except:
-                pass
-            # text_node = node.get_text(strip=True)
             text_node = node.text_content().strip()
             word_stats = self.stop_words_chck(text_node)/2
             temp = 0
@@ -206,54 +189,41 @@ class CustomExtractor:
 
             boost_score2 = 0
             if(self.boost_req(node)):
-            #   print("Hello ")
+
               boost_score2 = 5
 
             try:
-              if 'article' in node['class'][0].split():
+              if 'article' in node.get('class').split():
                 word_stats += 10
             except:
                 word_stats += 0
             try:
-              if 'content' in node['class'][0].split():
+              if 'content' in node.get('class').split():
                 word_stats += 10
             except:
                 word_stats += 0
 
+            
             boost_score = boost_score*(0.95**(depth+1))
             upscore = word_stats + boost_score + boost_score2 + boost_score3*(0.95**(depth3+1))
 
 
-            # class_pattern = re.compile(r'\b(?:article|content)\b', re.IGNORECASE)
-
-
-#             print(upscore," ",word_stats," ",boost_score," ",word_stats+boost_score)
-
-
-
-            # parent_node = node.parent
             parent_node = node.getparent()
 
             self.update_score(node,upscore)
 
             zt = self.get_score(node)
             if(zt > top_node_score):
-            # if(node['score'] > top_node_score):
+            
               top_node = node
               top_node_score = zt
-            #   top_node_score = node['score']
+
 
             # print(node.name," ",word_stats," ",boost_score," ",boost_score3," ",node['score']," ",upscore)
 
             parent_text_containers.append(node)
-            # print(node.name," ",len(parent_text_containers))
-            # try:
-            #   print(node['class'])
-            # except:
-            #   boost_score += 0
 
             x = node
-            # if(node.name == 'p'):
             if(node.tag == 'p'):
                 for i in range(5):
                     # x = x.parent
@@ -270,8 +240,6 @@ class CustomExtractor:
 
                 if parent_parent_node not in parent_text_containers:
                     parent_text_containers.append(parent_parent_node)
-            cnt += 1
-            i += 1
 
 
         # print(len(parent_text_containers))
