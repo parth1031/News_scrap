@@ -12,15 +12,15 @@ url="https://www.gadgetsnow.com/gn-advertorial/enter-the-new-era-of-mobile-techn
 url = input("Please Enter the url :")
 
 proxies = {
-"http": "http://scraperapi:8355bf750256f87924cb321115d06996@proxy-server.scraperapi.com:8001"
+"http": "http://scraperapi:ed327761c0dc69ab3455d9af6142525e@proxy-server.scraperapi.com:8001"
 }
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 
 response = requests.get(url,headers=headers,proxies=proxies,verify=False)
-API_KEY = "8355bf750256f87924cb321115d06996"
+API_KEY = "ed327761c0dc69ab3455d9af6142525e"
 params = {'api_key': API_KEY, 'url': url}
 response = requests.get('http://api.scraperapi.com/', params=urlencode(params))
-# response.raise_for_status()
+response.raise_for_status()
 
 
 # print(html_content)
@@ -63,7 +63,6 @@ print("\n\n")
 # Now, you ca
 # n access the best node and its gravity score
 if best_node is not None:
-    # print(best_node.tag)
     try:
         print(f"Best Node: {best_node.get('class')}")
     except:

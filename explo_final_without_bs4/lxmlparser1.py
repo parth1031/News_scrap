@@ -92,19 +92,7 @@ class HTMLParser:
                 sibling = sibling.getnext()
         return siblings
     
-    # def find_all_lxml(self, tag=None, recursive=True):
-    #     if tag:
-    #         query = ".//{}".format(tag)
-    #     else:
-    #         query = ".//*"
-    #     if recursive:
-    #         elements = self.tree.xpath(query)
-    #     else:
-    #         elements = self.tree.findall(query)
-    #     return elements
-
-
-
+    
     def children(self, tag_name=None, attribute_name=None, attribute_value=None):
         result_list = []
         if tag_name and attribute_name and attribute_value:
@@ -116,7 +104,7 @@ class HTMLParser:
         
         elements = self.tree.xpath(xpath_query)
         for element in elements:
-            parent = element.getparent()
+            parent = element.getchildren()
             if parent is not None:
                 result_dict = {'tag': parent.tag, 'attributes': {}}
                     
@@ -250,46 +238,46 @@ class HTMLParser:
         
         return siblings
     
-    # def find_all_lxml(self, node=None, tag=None, recursive=True):
-    #     elements=[]
-    #     if node is not None:
-    #         if tag:
-    #             query = ".//{}//*".format(tag)
-    #         else:
-    #             query = ".//*"
-    #         if recursive:
-    #             elements = node.xpath(query)
-    #         else:
-    #             elements = node.findall(query)
-    #     else:
-    #         if tag:
-    #             query = ".//{}".format(tag)
-    #         else:
-    #             query = ".//*"
-    #         if recursive:
-    #             elements = self.tree.xpath(query)
-    #         else:
-    #             elements = self.tree.findall(query)
-    #     return elements
-
-     
     def find_all_lxml(self, node=None, tag=None, recursive=True):
         elements=[]
         if node is not None:
-            
+            if tag:
+                query = ".//{}//*".format(tag)
+            else:
+                query = ".//*"
             if recursive:
-                query=".//{}".format(tag)
-                elements=node.xpath(query)
-            else: 
-                query="./{}".format(tag)
-                elements=node.xpath(query)
+                elements = node.xpath(query)
+            else:
+                elements = node.findall(query)
         else:
+            if tag:
+                query = ".//{}".format(tag)
+            else:
+                query = ".//*"
             if recursive:
-                query=".//{}".format(tag)
-                elements=self.tree.xpath(query)
-            else: 
-                query="./{}".format(tag)
-                elements=self.tree.xpath(query)
-            
+                elements = self.tree.xpath(query)
+            else:
+                elements = self.tree.findall(query)
         return elements
+
+     
+    # def find_all_lxml(self, node=None, tag=None, recursive=True):
+    #     elements=[]
+    #     if node is not None:
+            
+    #         if recursive:
+    #             query=".//{}".format(tag)
+    #             elements=node.xpath(query)
+    #         else: 
+    #             query="./{}".format(tag)
+    #             elements=node.xpath(query)
+    #     else:
+    #         if recursive:
+    #             query=".//{}".format(tag)
+    #             elements=self.tree.xpath(query)
+    #         else: 
+    #             query="./{}".format(tag)
+    #             elements=self.tree.xpath(query)
+            
+    #     return elements
 

@@ -130,9 +130,12 @@ class CustomExtractor:
 
         # print(worthy_text_containers)
         starting_boost = 1.0
+        cnt = 0
+        i = 0
         parent_text_containers = []
         text_containers_with_text = []
 
+        pre_def_classes = ["SY2GX mb40","atricle_content",""]
 
 
         for node in worthy_text_containers:
@@ -156,11 +159,19 @@ class CustomExtractor:
                 # print("Yes")
                 text_containers_with_text.append(node)
 
-        
+        text_containers_number = len(text_containers_with_text)
+        negative_scoring = 0
+        bottom_negativescore_text_containers = text_containers_number * 0.25
 
         # print(text_containers_with_text)
         for node in text_containers_with_text:
 
+            try:
+                if(node['class'] == "article_content"):
+                    return node
+            except:
+                pass
+#             print(type(node))
             boost_score = 0
             depth = 0
 
@@ -178,6 +189,12 @@ class CustomExtractor:
             except:
               depth3 += 0
 
+
+            try:
+                print(node['class']," ",boost_score," ",boost_score2," ",boost_score3)
+            except:
+                pass
+            # text_node = node.get_text(strip=True)
             text_node = node.text_content().strip()
             word_stats = self.stop_words_chck(text_node)/2
             temp = 0
@@ -189,41 +206,54 @@ class CustomExtractor:
 
             boost_score2 = 0
             if(self.boost_req(node)):
-
+            #   print("Hello ")
               boost_score2 = 5
 
             try:
-              if 'article' in node.get('class').split():
+              if 'article' in node['class'][0].split():
                 word_stats += 10
             except:
                 word_stats += 0
             try:
-              if 'content' in node.get('class').split():
+              if 'content' in node['class'][0].split():
                 word_stats += 10
             except:
                 word_stats += 0
 
-            
             boost_score = boost_score*(0.95**(depth+1))
             upscore = word_stats + boost_score + boost_score2 + boost_score3*(0.95**(depth3+1))
 
 
+            # class_pattern = re.compile(r'\b(?:article|content)\b', re.IGNORECASE)
+
+
+#             print(upscore," ",word_stats," ",boost_score," ",word_stats+boost_score)
+
+
+
+            # parent_node = node.parent
             parent_node = node.getparent()
 
             self.update_score(node,upscore)
 
             zt = self.get_score(node)
             if(zt > top_node_score):
-            
+            # if(node['score'] > top_node_score):
               top_node = node
               top_node_score = zt
-
+            #   top_node_score = node['score']
 
             # print(node.name," ",word_stats," ",boost_score," ",boost_score3," ",node['score']," ",upscore)
 
             parent_text_containers.append(node)
+            # print(node.name," ",len(parent_text_containers))
+            # try:
+            #   print(node['class'])
+            # except:
+            #   boost_score += 0
 
             x = node
+            # if(node.name == 'p'):
             if(node.tag == 'p'):
                 for i in range(5):
                     # x = x.parent
@@ -240,6 +270,8 @@ class CustomExtractor:
 
                 if parent_parent_node not in parent_text_containers:
                     parent_text_containers.append(parent_parent_node)
+            cnt += 1
+            i += 1
 
 
         # print(len(parent_text_containers))
@@ -303,86 +335,7 @@ class CustomExtractor:
 
 
 
-    def findauthors(self, doc):
-         #we are using mutiple rules simultanously so it can copy a name mutiple times
-        def unique_list(authors):
-            return list(set([item.title() for item in authors if len(item.split()) <= 5]))
-
-        
-        
-        # as names do not contain digits
-        def contains_digits(d):
-            for char in d:
-                if char.isdigit():
-                    return True
-            return False
-        # to filter output written by tag text or content
-        def filter(str):
-            
-            str = ''.join(char for char in str if char != '<' and char != '>')
-
-            str = re.sub(r'\b(by:|by|from:|image|of|real|oru|development|apr|three|minors|killed|fire|pokhara|tourism|council|hands|memo|biotechnology|nbspjanuary|lifestyle|travel|times|public|company|source|screen|korea|battery|glass|screengrab|edited|close|com|october|to|bookmark|writer|laboratory|fast|staff|editor|the|concerned|india|familiar|with|integrated|view|comments|am|pm|updated|published|hd|doc|for|staying|indonesia|english|live|share|whatsapp|telegram|facebook|twitter|email|linkedin|advertisement|news|in|media|bureau)\b', '', str, flags=re.IGNORECASE).strip()
-
-            str = str.replace('"', ' ').replace("'", ' ').replace('-', ' ').replace('.', ' ')
-
-            names = re.findall(r'\w+|\,',str)
-
     
-            authors = []
-            current_author = ''
-
-            for name in names:
-                if contains_digits(name):
-                    continue
-                elif name in ['and', ',']:
-                    if current_author:
-                        authors.append(current_author.strip())
-                        current_author = ''
-                else:
-                    current_author += name + ' '
-            #sometimes last element may be news source 
-            if len(current_author)>2:
-                authors.append(current_author.strip())
-    
-            return authors
-            
-       
-        attribute_name = ['name', 'rel', 'itemprop', 'class', 'id','route']
-        attribute_value = ['uk-link-reset','info_l','Page-authors','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','article__author','article-byline__author','Byline','h6 h6--author-name'
-                          ]
-        
-        pattern= re.compile(r'(?:written by|writer|editor|with reports from|source|edited by|published by)[\s:-]+([A-Za-z]+(?:\s+[A-Za-z]+)?)', re.IGNORECASE)
-        
-        parser=HTMLParser(doc)
-        
-
-           
-        data_objects = []
-        authors = []
-        
-        for attribute in attribute_name:
-            for value in attribute_value:
-                found = parser.attributeobjects(attribute, value)
-                data_objects.extend(found)
-    
-        for element in data_objects:
-            name = ''
-            if element.tag == 'meta':
-                name = element.get('content', '') 
-            else:
-                name = element.text_content().strip()
-                
-                
-            if len(name) > 0:
-                authors.extend(filter(name))
-        #it search for pattern described in whole text
-        match = pattern.search(parser.all_text())
-
-        if match:
-            authors.extend(filter(match.group(1)))
-    
-        return unique_list(authors)
-
     
     def findauthors(self, doc):
          #we are using mutiple rules simultanously so it can copy a name mutiple times
@@ -428,8 +381,8 @@ class CustomExtractor:
             return authors
             
        
-        attribute_name = ['name', 'rel', 'itemprop', 'class', 'id','route']
-        attribute_value = ['uk-link-reset','info_l','Page-authors','float-left update','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','article__author','article-byline__author','Byline','h6 h6--author-name'
+        attribute_name = ['name', 'rel', 'itemprop', 'class', 'id','route','data-testid']
+        attribute_value = ['uk-link-reset','info_l','Page-authors','sc-53757630-3 kLlYxB','float-left update','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','article__author','article-byline__author','Byline','h6 h6--author-name'
                           ]
         #for searching  pattern for author
         pattern= re.compile(r'(?:written by|writer|editor|with reports from|source|edited by|published by)[\s:-]+([A-Za-z]+(?:\s+[A-Za-z]+)?)', re.IGNORECASE)
@@ -518,7 +471,7 @@ class CustomExtractor:
         
         
         attribute_name= ['id', 'class','name','rel', 'itemprop', 'pubdate', 'property']
-        attribute_value=['art_plat','info_l','bar','value-title','post-time','news-detail_newsInfo__dv0be','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
+        attribute_value=['wBeSy W-N65','art_plat','each_row time','tts_time published_time','info_l','bar','value-title','post-time','news-detail_newsInfo__dv0be','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
                         ]
 
         #attribute pattern search for word in attribute values not exact attribute value and data objects for storing objects

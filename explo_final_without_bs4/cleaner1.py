@@ -107,9 +107,13 @@ def cleaning_function(best_node,parser):
         unique_content = [content[i] for i in range(len(content)) if i not in duplicate_indices]
 
         # Print unique content
+        flag = 0
         for sentence in unique_content:
+            flag = 1
             print(sentence.replace('\n', ' '))
-
+        if(flag == 0):
+            content = parser.remove_scripts(best_node)
+            print(content.strip().replace('\n', ' '))
 
     else:
       for node in parser.find_all_lxml(node=best_node):
