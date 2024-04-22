@@ -355,7 +355,7 @@ class CustomExtractor:
             #filtering < or > if by any chance through comments etc.
             str = ''.join(char for char in str if char != '<' and char != '>')
             #removing all unecessary words which can't be part of name
-            str = re.sub(r'\b(by:|by|from:|image|of|real|oru|development|three|minors|killed|fire|pokhara|tourism|council|hands|memo|biotechnology|nbspjanuary|lifestyle|travel|times|public|company|source|screen|korea|battery|glass|screengrab|edited|close|com|mar|on|first|october|to|bookmark|writer|laboratory|fast|staff|editor|the|concerned|india|familiar|with|integrated|view|comments|am|pm|updated|published|hd|doc|for|staying|indonesia|english|live|share|whatsapp|telegram|facebook|twitter|email|linkedin|advertisement|news|in|media|bureau)\b', '', str, flags=re.IGNORECASE).strip()
+            str = re.sub(r'\b(by:|by|from:|image|of|real|oru|development|chief|apr|control|advertise|crimes|business|not|acting|unfiltered|three|minors|killed|fire|pokhara|tourism|council|hands|memo|biotechnology|nbspjanuary|lifestyle|travel|times|public|company|source|screen|korea|battery|glass|screengrab|edited|close|com|mar|on|first|october|to|bookmark|writer|laboratory|fast|staff|editor|the|concerned|india|familiar|with|integrated|view|comments|am|pm|updated|published|hd|doc|for|staying|indonesia|english|live|share|whatsapp|telegram|facebook|twitter|email|linkedin|advertisement|news|in|media|bureau)\b', '', str, flags=re.IGNORECASE).strip()
             #removing all inverted commas and full stop
             str = str.replace('"', ' ').replace("'", ' ').replace('-', ' ').replace('.', ' ')
             #breaking string in list of words considering comma as also word
@@ -382,7 +382,7 @@ class CustomExtractor:
             
        
         attribute_name = ['name', 'rel', 'itemprop', 'class', 'id','route','data-testid']
-        attribute_value = ['uk-link-reset','info_l','Page-authors','sc-53757630-3 kLlYxB','float-left update','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','article__author','article-byline__author','Byline','h6 h6--author-name'
+        attribute_value = ['tdb-author-name','uk-link-reset','info_l','Page-authors','author_main','entry-author','sc-53757630-3 kLlYxB','float-left update','text-capitalize','news-detail_newsBy__6_pzA','xf8Pm byline','writer','art_sign','reviewer','read__credit__item','tjp-meta__label','article-author','article-byline__author','cursor-pointer','credit__authors','author', 'byline', 'dc.creator', 'byl','author-name','author-content','aaticleauthor_name','group-info','byline_names','byline-name','article__author','article-byline__author','Byline','h6 h6--author-name'
                           ]
         #for searching  pattern for author
         pattern= re.compile(r'(?:written by|writer|editor|with reports from|source|edited by|published by)[\s:-]+([A-Za-z]+(?:\s+[A-Za-z]+)?)', re.IGNORECASE)
@@ -471,7 +471,7 @@ class CustomExtractor:
         
         
         attribute_name= ['id', 'class','name','rel', 'itemprop', 'pubdate', 'property']
-        attribute_value=['wBeSy W-N65','art_plat','each_row time','tts_time published_time','info_l','bar','value-title','post-time','news-detail_newsInfo__dv0be','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
+        attribute_value=['publishdate','ok-post-date','time','news-datestamp','wBeSy W-N65','art_plat','each_row time','tts_time published_time','info_l','bar','value-title','post-time','news-detail_newsInfo__dv0be','post-tags','bread-crumb-detail__time','fa fa-clock-o','post-timeago','entry-date published','detail__time','article-publish article-publish--','title_text','title-text','thb-post-date','entry-sidebar','meta_date','txt','news-detail','post-timeago','read__time','box','where','txt_left','date-publish','published','article-publish','timestamp','article_date_original', 'article:published_time','inputDate','bread-crumb-detail__time', 'inputdate','date', 'OriginalPublicationDate', 'publication_date', 'publish_date', 'PublishDate', 'rnews:datePublished', 'sailthru.date', 'datePublished', 'dateModified', 'og:published_time'
                         ]
 
         #attribute pattern search for word in attribute values not exact attribute value and data objects for storing objects
